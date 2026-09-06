@@ -1,0 +1,195 @@
+{
+  "taskVersion": {
+    "versionNumber": 1,
+    "name": "predicting electric vehicle purchases",
+    "description": "",
+    "definition": "@kbench.task(name=\"predicting electric vehicle purchases\")\ndef predicting_electric_vehicle_purchases(llm):\n    # Defining the prompt based on the user's description and example format\n    prompt = \"\"\"\n    Predict the probability for the 'Will_Buy_EV' variable for the following test IDs: 668665, 668666, 668667.\n    Your response must be a CSV-formatted string with a header.\n    Format:\n    id,Will_Buy_EV\n    668665,0.2\n    668666,0.3\n    668667,0.2\n    \"\"\"\n    \n    response = llm.prompt(prompt)\n\n    # Assertion 1: Check for the CSV header\n    kbench.assertions.assert_contains_regex(\n        r\"(?i)id,Will_Buy_EV\",\n        response,\n        expectation=\"The response must include the header 'id,Will_Buy_EV'.\"\n    )\n\n    # Assertion 2: Verify specific IDs and probability format (0.0 to 1.0)\n    target_ids = [\"668665\", \"668666\", \"668667\"]\n    for target_id in target_ids:\n        kbench.assertions.assert_contains_regex(\n            fr\"{target_id},(0(\\.\\d+)?|1(\\.0+)?|\\.\\d+)\",\n            response,\n            expectation=f\"The output must contain a valid probability for ID {target_id}.\"\n        )\n\n    # Assertion 3: Use a judge for qualitative validation of the CSV format\n    assessment = kbench.assertions.assess_response_with_judge(\n        criteria=[\n            \"The output is strictly in CSV format.\",\n            \"The output contains no conversational filler text.\",\n            \"The Will_Buy_EV column contains valid numeric probabilities.\"\n        ],\n        response_text=response,\n        judge_llm=kbench.judge_llm\n    )\n\n    if assessment is None:\n        kbench.assertions.assert_fail(expectation=\"The judge LLM failed to return a valid assessment.\")\n    else:\n        for result in assessment.results:\n            kbench.assertions.assert_true(\n                result.passed,\n                expectation=f\"Criterion '{result.criterion}' failed: {result.reason}\"\n            )\n"
+  },
+  "modelVersion": {
+    "slug": "google/gemini-3-flash-preview"
+  },
+  "state": "BENCHMARK_TASK_RUN_STATE_COMPLETED",
+  "startTime": "2026-09-06T17:58:43.742849Z",
+  "endTime": "2026-09-06T17:58:52.015478Z",
+  "conversations": [
+    {
+      "id": "predicting electric vehicle purchases-df8178fc",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "\n    Predict the probability for the 'Will_Buy_EV' variable for the following test IDs: 668665, 668666, 668667.\n    Your response must be a CSV-formatted string with a header.\n    Format:\n    id,Will_Buy_EV\n    668665,0.2\n    668666,0.3\n    668667,0.2\n    "
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "id,Will_Buy_EV\n668665,0.18\n668666,0.64\n668667,0.31"
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-3-flash-preview"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 112,
+            "outputTokens": 970,
+            "inputTokensCostNanodollars": "56000",
+            "outputTokensCostNanodollars": "2910000",
+            "totalBackendLatencyMs": "5051"
+          },
+          "id": "predicting electric vehicle purchases-df8178fc-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 112,
+        "outputTokens": 970,
+        "inputTokensCostNanodollars": "56000",
+        "outputTokensCostNanodollars": "2910000",
+        "totalBackendLatencyMs": "5051"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    },
+    {
+      "id": "Response assessment with google/gemini-3.8-flash-bbe9f84a",
+      "requests": [
+        {
+          "contents": [
+            {
+              "parts": [
+                {
+                  "text": "\n        You are an impartial and strict technical evaluator.\n\n        ### Task\n        Verify if the **Generated Response** complies strictly with the **Criteria**.\n\n        ### Input Data\n        **Generated Response:**\n        id,Will_Buy_EV\n668665,0.18\n668666,0.64\n668667,0.31\n\n        **Criteria:**\n        1. The output is strictly in CSV format.\n2. The output contains no conversational filler text.\n3. The Will_Buy_EV column contains valid numeric probabilities.\n\n        ### Evaluation Protocol\n        1. Analyze the response against the criteria.\n        2. Be strict. If the text is ambiguous, the check fails.\n        3. Output your assessment using the specific structure requested below.\n"
+                }
+              ],
+              "role": "CONTENT_ROLE_USER",
+              "senderName": "User"
+            },
+            {
+              "parts": [
+                {
+                  "text": "\"{\\\"results\\\":[{\\\"criterion\\\":\\\"The output is strictly in CSV format.\\\",\\\"passed\\\":true,\\\"reason\\\":\\\"The output consists solely of valid comma-separated values with a header and rows.\\\",\\\"confidence\\\":5},{\\\"criterion\\\":\\\"The output contains no conversational filler text.\\\",\\\"passed\\\":true,\\\"reason\\\":\\\"There is no introductory, concluding, or explanatory text present.\\\",\\\"confidence\\\":5},{\\\"criterion\\\":\\\"The Will_Buy_EV column contains valid numeric probabilities.\\\",\\\"passed\\\":true,\\\"reason\\\":\\\"All values in the 'Will_Buy_EV' column (0.18, 0.64, 0.31) are valid decimal numbers representing probabilities between 0 and 1.\\\",\\\"confidence\\\":5}]}\""
+                }
+              ],
+              "role": "CONTENT_ROLE_ASSISTANT",
+              "senderName": "google/gemini-3.8-flash"
+            }
+          ],
+          "metrics": {
+            "inputTokens": 388,
+            "outputTokens": 429,
+            "inputTokensCostNanodollars": "291000",
+            "outputTokensCostNanodollars": "1608750",
+            "totalBackendLatencyMs": "1873"
+          },
+          "id": "Response assessment with google/gemini-3.8-flash-bbe9f84a-req-1"
+        }
+      ],
+      "metrics": {
+        "inputTokens": 388,
+        "outputTokens": 429,
+        "inputTokensCostNanodollars": "291000",
+        "outputTokensCostNanodollars": "1608750",
+        "totalBackendLatencyMs": "1873"
+      },
+      "modelVersionSlug": "model_version_slug for conversation is DEPRECATED"
+    }
+  ],
+  "results": [
+    {
+      "type": "AGGREGATED",
+      "booleanResult": true
+    }
+  ],
+  "assertions": [
+    {
+      "expectation": "The response must include the header 'id,Will_Buy_EV'.",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 19,
+      "definition": "kbench.assertions.assert_contains_regex(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "predicting electric vehicle purchases-df8178fc",
+          "requestId": "predicting electric vehicle purchases-df8178fc-req-1"
+        }
+      ]
+    },
+    {
+      "expectation": "The output must contain a valid probability for ID 668665.",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 28,
+      "definition": "kbench.assertions.assert_contains_regex(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "predicting electric vehicle purchases-df8178fc",
+          "requestId": "predicting electric vehicle purchases-df8178fc-req-1"
+        }
+      ]
+    },
+    {
+      "expectation": "The output must contain a valid probability for ID 668666.",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 28,
+      "definition": "kbench.assertions.assert_contains_regex(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "predicting electric vehicle purchases-df8178fc",
+          "requestId": "predicting electric vehicle purchases-df8178fc-req-1"
+        }
+      ]
+    },
+    {
+      "expectation": "The output must contain a valid probability for ID 668667.",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 28,
+      "definition": "kbench.assertions.assert_contains_regex(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "predicting electric vehicle purchases-df8178fc",
+          "requestId": "predicting electric vehicle purchases-df8178fc-req-1"
+        }
+      ]
+    },
+    {
+      "expectation": "Criterion 'The output is strictly in CSV format.' failed: The output consists solely of valid comma-separated values with a header and rows.",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 49,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "predicting electric vehicle purchases-df8178fc",
+          "requestId": "predicting electric vehicle purchases-df8178fc-req-1"
+        }
+      ]
+    },
+    {
+      "expectation": "Criterion 'The output contains no conversational filler text.' failed: There is no introductory, concluding, or explanatory text present.",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 49,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "predicting electric vehicle purchases-df8178fc",
+          "requestId": "predicting electric vehicle purchases-df8178fc-req-1"
+        }
+      ]
+    },
+    {
+      "expectation": "Criterion 'The Will_Buy_EV column contains valid numeric probabilities.' failed: All values in the 'Will_Buy_EV' column (0.18, 0.64, 0.31) are valid decimal numbers representing probabilities between 0 and 1.",
+      "status": "BENCHMARK_TASK_RUN_ASSERTION_STATUS_PASSED",
+      "lineNumber": 49,
+      "definition": "kbench.assertions.assert_true(",
+      "conversationRequestIds": [
+        {
+          "conversationId": "predicting electric vehicle purchases-df8178fc",
+          "requestId": "predicting electric vehicle purchases-df8178fc-req-1"
+        }
+      ]
+    }
+  ],
+  "pyRunId": "predicting electric vehicle purchases-Run #1"
+}
